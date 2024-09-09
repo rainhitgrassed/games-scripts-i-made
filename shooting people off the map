@@ -1,4 +1,12 @@
 print("Made by Trappyx")
+wait(0.5)
+print("Loading.")
+wait(1)
+print("Loading..")
+wait(1)
+print("Loading...")
+wait(0.5)
+print("Making more scripts later :)")
 
 local distance = 0
 
@@ -308,3 +316,11 @@ tab2:AddToggle({
 for _, player in ipairs(game.Players:GetPlayers()) do
     onPlayerAdded(player)
 end
+
+local tab3 = Window:MakeTab({
+	Name = "Credits",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+
+tab3:AddLabel("Made by Trappyx")
