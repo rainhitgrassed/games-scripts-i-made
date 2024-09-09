@@ -11,7 +11,7 @@ print("Making more scripts later :)")
 local distance = 0
 
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/rainhitgrassed/UI-Library-/main/src')))()
-local Window = OrionLib:MakeWindow({Name = "testing time", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
+local Window = OrionLib:MakeWindow({Name = "Shoot Players off the map", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
 
 local tab1 = Window:MakeTab({
 	Name = "Aimbot",
