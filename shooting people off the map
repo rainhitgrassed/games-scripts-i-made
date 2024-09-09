@@ -1,0 +1,310 @@
+print("Made by Trappyx")
+
+local distance = 0
+
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/rainhitgrassed/UI-Library-/main/src')))()
+local Window = OrionLib:MakeWindow({Name = "testing time", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
+
+local tab1 = Window:MakeTab({
+	Name = "Aimbot",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+
+local sec1 = tab1:AddSection({
+	Name = "Aimbot & Settings"
+})
+
+-- Create the Drawing object
+local circle = Drawing.new("Circle")
+circle.Thickness = 2
+circle.Color = Color3.fromRGB(255, 255, 255) -- White color
+circle.Visible = false
+
+-- User Interface variables
+local isCircleVisible = false
+local circleSize = 20
+
+-- Update the circle's position and size
+local function updateCircle()
+    if isCircleVisible then
+        local mouse = game.Players.LocalPlayer:GetMouse()
+        circle.Position = Vector2.new(mouse.X, mouse.Y)
+        circle.Radius = circleSize / 2
+    end
+end
+
+-- Toggle circle visibility
+local function onToggleCircle(visible)
+    isCircleVisible = visible
+    circle.Visible = visible
+end
+
+-- Update circle size
+local function onChangeCircleSize(size)
+    circleSize = size
+    circle.Radius = circleSize / 2
+end
+
+-- Example usage with UI elements
+-- Replace with your actual UI library calls
+tab1:AddToggle({
+    Name = "Show Circle",
+    Default = false,
+    Callback = onToggleCircle
+})
+
+tab1:AddSlider({
+    Name = "Change Circle Size",
+    Min = 20,
+    Max = 240,
+    Default = 20,
+    Color = Color3.fromRGB(66, 78, 133),
+    Increment = 1,
+    ValueName = "Circle Size",
+    Callback = onChangeCircleSize
+})
+
+-- Update loop
+game:GetService("RunService").RenderStepped:Connect(function()
+    updateCircle()
+end)
+
+
+tab1:AddSlider({
+	Name = "Change camlock range",
+	Min = 20,
+	Max = 240,
+	Default = 20,
+	Color = Color3.fromRGB(66,78,133),
+	Increment = 1,
+	ValueName = "Range",
+	Callback = function(Value)
+		distance = Value
+	end    
+})
+
+
+
+-- Place this script in StarterPlayerScripts as a LocalScript
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+
+local isCamlockEnabled = false
+
+-- Function to get the closest player
+local function getClosestPlayer()
+    local closestPlayer = nil
+    local shortestDistance = distance
+    
+    for _, otherPlayer in ipairs(Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local character = otherPlayer.Character
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+            local distance = (mouse.Hit.p - humanoidRootPart.Position).magnitude
+            
+            if distance < shortestDistance then
+                closestPlayer = otherPlayer
+                shortestDistance = distance
+            end
+        end
+    end
+    
+    return closestPlayer
+end
+
+-- Function to update the camera position
+local function onUpdate()
+    if isCamlockEnabled and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+        local targetPlayer = getClosestPlayer()
+        
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, targetPosition)
+        end
+    end
+end
+
+-- Connect the update function to RenderStepped
+RunService.RenderStepped:Connect(onUpdate)
+
+-- Example toggle setup (assuming `tab1` is defined elsewhere in your script)
+tab1:AddToggle({
+    Name = "Camlock",
+    Default = false,
+    Callback = function(Value)
+        isCamlockEnabled = Value
+        print("Camlock Enabled:", Value)
+    end    
+})
+
+
+local tab2 = Window:MakeTab({
+	Name = "Visual",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+
+local sec2 = tab2:AddSection({
+	Name = "Visual & Settings"
+})
+
+-- Initialize the GUI for the ESP
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+-- Table to store the ESP boxes
+local playerBoxes = {}
+
+-- Function to create an ESP box around a player
+local function createBox(player)
+    -- Create a new Drawing object
+    local boxOutline = Drawing.new("Square")
+    boxOutline.Color = Color3.fromRGB(255, 255, 255)  -- White color
+    boxOutline.Thickness = 1
+    boxOutline.Visible = false  -- Start with the box invisible
+
+    -- Attach the box to the player's character
+    playerBoxes[player] = boxOutline
+end
+
+-- Function to update the ESP boxes
+local function updateBoxes()
+    for _, player in ipairs(Players:GetPlayers()) do
+        local character = player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local humanoidRootPart = character.HumanoidRootPart
+            local boxOutline = playerBoxes[player]
+
+            -- Update the box position and size
+            if boxOutline then
+                local screenPoint = workspace.CurrentCamera:WorldToScreenPoint(humanoidRootPart.Position)
+                boxOutline.Position = Vector2.new(screenPoint.X - 25, screenPoint.Y - 0)  -- Center of the box
+                boxOutline.Size = Vector2.new(50, 75)  -- Size of the box
+                boxOutline.Visible = true
+            end
+        end
+    end
+end
+
+-- Event when a new player joins
+Players.PlayerAdded:Connect(function(player)
+    createBox(player)
+end)
+
+-- Event when a player leaves
+Players.PlayerRemoving:Connect(function(player)
+    local boxOutline = playerBoxes[player]
+    if boxOutline then
+        boxOutline.Visible = false
+        playerBoxes[player] = nil
+    end
+end)
+
+-- Create ESP boxes for existing players
+for _, player in ipairs(Players:GetPlayers()) do
+    createBox(player)
+end
+
+-- Toggle for enabling/disabling ESP
+local espEnabled = false
+
+tab2:AddToggle({
+    Name = "Enable ESP Box",
+    Default = false,
+    Callback = function(Value)
+        espEnabled = Value
+    end    
+})
+
+-- Update boxes based on the toggle value
+RunService.RenderStepped:Connect(function()
+    if espEnabled then
+        updateBoxes()
+    else
+        for _, boxOutline in pairs(playerBoxes) do
+            if boxOutline then
+                boxOutline.Visible = false
+            end
+        end
+    end
+end)
+
+
+-- Define the function to create and update ESP tracers for players
+local function createESPTracer(player)
+    -- Check if player is valid
+    if player and player.Character and player.Character:FindFirstChild("Head") then
+        local head = player.Character.Head
+
+        -- Create a new Drawing for the line
+        local line = Drawing.new("Line")
+        line.Visible = false
+        line.Thickness = 1
+        line.Color = Color3.fromRGB(255, 255, 255) -- White color
+        line.From = Vector2.new(0, 0)
+        line.To = Vector2.new(0, 0)
+
+        -- Update the line position
+        game:GetService("RunService").RenderStepped:Connect(function()
+            if line.Visible then
+                local camera = workspace.CurrentCamera
+                local headPos, onScreen = camera:WorldToViewportPoint(head.Position)
+                if onScreen then
+                    line.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+                    line.To = Vector2.new(headPos.X, headPos.Y)
+                end
+            end
+        end)
+
+        -- Return the line object
+        return line
+    end
+end
+
+-- Table to hold lines for each player
+local playerLines = {}
+
+-- Function to handle player added
+local function onPlayerAdded(player)
+    local line = createESPTracer(player)
+    if line then
+        playerLines[player] = line
+    end
+end
+
+-- Function to handle player removing
+local function onPlayerRemoving(player)
+    if playerLines[player] then
+        playerLines[player]:Remove()
+        playerLines[player] = nil
+    end
+end
+
+-- Connect to player events
+game.Players.PlayerAdded:Connect(onPlayerAdded)
+game.Players.PlayerRemoving:Connect(onPlayerRemoving)
+
+-- Add toggle for ESP Tracer
+tab2:AddToggle({
+    Name = "Enable ESP Tracer",
+    Default = false,
+    Callback = function(Value)
+        -- Show or hide all lines based on the toggle value
+        for _, line in pairs(playerLines) do
+            line.Visible = Value
+        end
+        print("ESP Tracer Enabled:", Value)
+    end    
+})
+
+-- Initialize existing players
+for _, player in ipairs(game.Players:GetPlayers()) do
+    onPlayerAdded(player)
+end
